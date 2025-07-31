@@ -128,7 +128,7 @@ export default function HistoryScreen({ navigation }) {
 
   const exportHistory = async () => {
     try {
-      const exportData = await HistoryService.exportHistory();
+      await HistoryService.exportHistory();
       // In a real app, you might save this to a file or share it
       Alert.alert(
         "Export Ready",
@@ -301,18 +301,24 @@ export default function HistoryScreen({ navigation }) {
       </View>
 
       {/* History List */}
-      <FlatList
-        data={filteredHistory}
-        keyExtractor={(item) => item.id}
-        renderItem={renderHistoryItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={
-          filteredHistory.length === 0 && styles.emptyContainer
-        }
-      />
+      {loading ? (
+        <View style={styles.emptyState}>
+          <Text>Loading...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredHistory}
+          renderItem={renderHistoryItem}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={renderEmptyState}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={
+            filteredHistory.length === 0 && styles.emptyContainer
+          }
+        />
+      )}
 
       {/* Clear History Button */}
       {history.length > 0 && (
