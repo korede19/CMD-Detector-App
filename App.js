@@ -1,59 +1,107 @@
-// App.js - Main App Entry Point
 import React from "react";
-import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { MaterialIcons } from "@expo/vector-icons";
 
-// Import Screens
-import HomeScreen from "./src/screens/HomeScreen";
+// Import your screens
 import CameraScreen from "./src/screens/CameraScreen";
 import HistoryScreen from "./src/screens/HistoryScreen";
-import AboutScreen from "./src/screens/AboutScreen";
+import ResultsScreen from "./src/screens/ResultsScreen";
+import HomeScreen from "./src/screens/HomeScreen"; // We'll create this
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
+// Main Tab Navigator
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          switch (route.name) {
+            case "Home":
+              iconName = "home";
+              break;
+            case "Camera":
+              iconName = "camera-alt";
+              break;
+            case "History":
+              iconName = "history";
+              break;
+            default:
+              iconName = "help";
+          }
+
+          return <MaterialIcons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#4CAF50",
+        tabBarInactiveTintColor: "gray",
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: "#fff",
+          borderTopWidth: 1,
+          borderTopColor: "#e0e0e0",
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+        },
+      })}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarLabel: "Home" }}
+      />
+      <Tab.Screen
+        name="Camera"
+        component={CameraScreen}
+        options={{ tabBarLabel: "Scan" }}
+      />
+      <Tab.Screen
+        name="History"
+        component={HistoryScreen}
+        options={{ tabBarLabel: "History" }}
+      />
+    </Tab.Navigator>
+  );
+}
+
+// Main Stack Navigator
 export default function App() {
   return (
     <NavigationContainer>
-      <StatusBar style="dark" backgroundColor="#fff" />
       <Stack.Navigator
-        initialRouteName="Home"
         screenOptions={{
-          headerStyle: {
-            backgroundColor: "#fff",
-            elevation: 1,
-            shadowOpacity: 0.1,
-            borderBottomWidth: 1,
-            borderBottomColor: "#E0E0E0",
+          headerShown: false,
+          cardStyleInterpolator: ({ current, layouts }) => {
+            return {
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            };
           },
-          headerTintColor: "#333",
-          headerTitleStyle: {
-            fontWeight: "bold",
-            fontSize: 18,
-            color: "#333",
-          },
-          headerTitleAlign: "center",
         }}
       >
+        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
         <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Camera"
-          component={CameraScreen}
-          options={{ title: "Capture Leaf Image" }}
-        />
-        <Stack.Screen
-          name="History"
-          component={HistoryScreen}
-          options={{ title: "Detection History" }}
-        />
-        <Stack.Screen
-          name="About"
-          component={AboutScreen}
-          options={{ title: "About CMD" }}
+          name="Results"
+          component={ResultsScreen}
+          options={{
+            headerShown: false,
+            presentation: "modal",
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

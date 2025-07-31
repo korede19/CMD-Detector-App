@@ -9,8 +9,9 @@ import HelpSection from "../components/HelpSection";
 import CameraComponent from "../components/CameraComponent";
 import ImagePreview from "../components/ImagePreview";
 
-// Import Hooks
+// Import Hooks and Services
 import { useImagePicker } from "../hooks/useImagePicker";
+import ModelService from "../services/ModelService";
 
 // Import Styles
 import { globalStyles } from "../styles/globalStyles";
@@ -44,34 +45,44 @@ export default function CameraScreen({ navigation }) {
   };
 
   const handleAnalyze = async () => {
+    if (!capturedImage) {
+      Alert.alert("Error", "No image to analyze");
+      return;
+    }
+
     setIsAnalyzing(true);
 
-    // Simulate API call for CMD detection
     try {
-      // Here you would typically send the image to your AI model
-      // For now, we'll simulate a delay
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Use the ModelService to predict disease
+      const predictionResult = await ModelService.predictDisease(capturedImage);
 
-      // Navigate to results screen (you'll need to create this)
-      // navigation.navigate('Results', { imageUri: capturedImage });
+      // Navigate to results screen with the prediction
+      navigation.navigate("Results", {
+        imageUri: capturedImage,
+        predictionResult: predictionResult,
+      });
 
-      // For now, just show an alert
+      // Reset state
+      setCapturedImage(null);
+    } catch (error) {
+      console.error("Analysis error:", error);
       Alert.alert(
-        "Analysis Complete",
-        "CMD detection analysis has been completed. Results would be shown here.",
+        "Analysis Failed",
+        error.message || "Failed to analyze image. Please try again.",
         [
           {
-            text: "View History",
-            onPress: () => navigation.navigate("History"),
+            text: "Retry",
+            onPress: () => setIsAnalyzing(false),
           },
           {
-            text: "Scan Another",
-            onPress: () => setCapturedImage(null),
+            text: "Take New Photo",
+            onPress: () => {
+              setCapturedImage(null);
+              setIsAnalyzing(false);
+            },
           },
         ]
       );
-    } catch (error) {
-      Alert.alert("Error", "Failed to analyze image. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
